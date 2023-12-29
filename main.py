@@ -87,13 +87,13 @@ for mf in tqdm(musicFiles, "Cleaning files"):
   else:
     acceptableTags = acceptableOtherTags
   
-  for tag in list(mf.info.keys()):
+  for tag in list(mf.info.tags.keys()):
     if isMp3 and tag.startswith("APIC"):
       pass
     elif tag in acceptableTags:
       pass
     else:
-      mf.info.pop(tag)
+      mf.info.tags.pop(tag)
       mf.info.save()
       deletedTags.add(tag)
 
