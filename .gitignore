@@ -1,0 +1,7 @@
+.direnv/
+/target
+cache.pkl
+output.db
+tags.txt
+temp.txt
+deleted-tags.txt
