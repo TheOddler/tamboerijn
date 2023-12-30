@@ -53,6 +53,7 @@ acceptableOtherTags = [
   "disk",
   "covr",
   "©gen",
+  "©lyr",
 ]
 
 class MusicFile:
@@ -61,6 +62,7 @@ class MusicFile:
     self.info = info
 
 try:
+  raise Exception("Disable cache as that's was only really useful during development")
   musicFiles = pickle.load(open(cachePath, 'rb'))
 except:
   filePaths = []
