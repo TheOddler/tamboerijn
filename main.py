@@ -77,56 +77,70 @@ except:
 
   pickle.dump(musicFiles, open(cachePath, 'wb'))
 
-
 # Cleanup files
-deletedTags = set()
-for mf in tqdm(musicFiles, "Cleaning files"):
-  isMp3 = mf.path.lower().endswith(".mp3")
-  if isMp3:
-    acceptableTags = acceptableID3Tags
-  else:
-    acceptableTags = acceptableOtherTags
+# deletedTags = set()
+# for mf in tqdm(musicFiles, "Cleaning files"):
+#   isMp3 = mf.path.lower().endswith(".mp3")
+#   if isMp3:
+#     acceptableTags = acceptableID3Tags
+#   else:
+#     acceptableTags = acceptableOtherTags
   
-  for tag in list(mf.info.tags.keys()):
-    if isMp3 and tag.startswith("APIC"):
-      pass
-    elif tag in acceptableTags:
-      pass
-    else:
-      mf.info.tags.pop(tag)
-      mf.info.save()
-      deletedTags.add(tag)
+#   for tag in list(mf.info.tags.keys()):
+#     if isMp3 and tag.startswith("APIC"):
+#       pass
+#     elif tag in acceptableTags:
+#       pass
+#     else:
+#       mf.info.tags.pop(tag)
+#       mf.info.save()
+#       deletedTags.add(tag)
 
-f = open("deleted-tags.txt", "w")
-for deletedTag in deletedTags:
-  f.write(deletedTag.replace("\n","\\n"))
+# f = open("deleted-tags.txt", "w")
+# for deletedTag in deletedTags:
+#   f.write(deletedTag.replace("\n","\\n"))
+#   f.write("\n")
+# f.close()
+
+
+
+
+
+# List info
+allTags = set()
+for mf in tqdm(musicFiles, "Gathering tags"):
+  allTags.update(mf.info.tags.keys())
+
+f = open("tags.txt", "w")
+for tag in allTags:
+  f.write(tag.replace("\n","\\n"))
   f.write("\n")
 f.close()
 
-# sqliteCursor = sqliteConn.cursor()
-# # Create table
-# columns = ["\"" + tag + "\" TEXT NULLABLE DEFAULT NULL" for tag in nonMp3Tags]
-# columns = ", ".join(columns)
-# sqliteCursor.execute("DROP TABLE IF EXISTS tags")
-# sqliteCursor.execute("CREATE TABLE tags(path, " + columns + ")")
-# # Add data
-# for mf in tqdm(nonMp3Files, "Adding to db"):
-#   tags = list(mf.info.tags.keys())
+# Create a database with all the data for easy viewing in any sqlite viewer
+sqliteCursor = sqliteConn.cursor()
+# Create table
+columns = ["\"" + tag + "\" TEXT NULLABLE DEFAULT NULL" for tag in allTags]
+columns = ", ".join(columns)
+sqliteCursor.execute("DROP TABLE IF EXISTS tags")
+sqliteCursor.execute("CREATE TABLE tags(path, " + columns + ")")
+# Add data
+for mf in tqdm(musicFiles, "Adding to db"):
+  tags = list(mf.info.tags.keys())
 
-#   cols = ["path"] + tags
-#   cols = ["\"" + col + "\" " for col in cols]
-#   cols = ", ".join(cols)
+  cols = ["path"] + tags
+  cols = ["\"" + col + "\" " for col in cols]
+  cols = ", ".join(cols)
 
-#   vals = [mf.path] + [mf.info.tags[tag] for tag in tags]
-#   vals = [str(val).replace("'", "''") for val in vals]
-#   vals = [val.replace("\x00", "\\NUL") for val in vals]
-#   vals = ["'" + val + "'" for val in vals]
-#   vals = ", ".join(vals)
+  vals = [mf.path] + [mf.info.tags[tag] for tag in tags]
+  vals = [str(val).replace("'", "''") for val in vals]
+  vals = [val.replace("\x00", "\\NUL") for val in vals]
+  vals = ["'" + val + "'" for val in vals]
+  vals = ", ".join(vals)
 
-#   query = "INSERT INTO tags (" + cols + ") VALUES(" + vals +");"
-#   f = open("temp.txt", "w")
-#   f.write(query)
-#   f.close()
-#   sqliteCursor.execute(query)
-# sqliteConn.commit()
-
+  query = "INSERT INTO tags (" + cols + ") VALUES(" + vals +");"
+  f = open("temp.txt", "w")
+  f.write(query)
+  f.close()
+  sqliteCursor.execute(query)
+sqliteConn.commit()
